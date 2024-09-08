@@ -1,25 +1,58 @@
-import logo from './logo.svg';
-import './App.css';
+import * as React from 'react';
+import CssBaseline from '@mui/material/CssBaseline';
+import Container from '@mui/material/Container';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
+import AppAppBar from './components/AppAppBar';
+import MainContent from './components/MainContent';
+import Latest from './components/Latest';
+import Footer from './components/Footer';
+
+import getHomeTheme from './theme/getHomeTheme';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const [mode, setMode] = React.useState('dark');
+    const [showCustomTheme] = React.useState(true);
+    const homeTheme = createTheme(getHomeTheme(mode));
+    const defaultTheme = createTheme({palette: {mode}});
+    // This code only runs on the client side, to determine the system color preference
+    React.useEffect(() => {
+        // Check if there is a preferred mode in localStorage
+        const savedMode = localStorage.getItem('themeMode');
+        if (savedMode) {
+            setMode(savedMode);
+        } else {
+            // If no preference is found, it uses system preference
+            const systemPrefersDark = window.matchMedia(
+                '(prefers-color-scheme: dark)',
+            ).matches;
+            setMode(systemPrefersDark ? 'dark' : 'light');
+        }
+    }, []);
+
+    const toggleColorMode = () => {
+        const newMode = mode === 'dark' ? 'light' : 'dark';
+        setMode(newMode);
+        localStorage.setItem('themeMode', newMode); // Save the selected mode to localStorage
+    };
+
+    return (
+        <ThemeProvider theme={showCustomTheme ? homeTheme : defaultTheme}>
+            <CssBaseline enableColorScheme/>
+            <AppAppBar
+                mode={mode}
+                toggleColorMode={toggleColorMode}
+            />
+            <Container
+                maxWidth="lg"
+                component="main"
+                sx={{display: 'flex', flexDirection: 'column', my: 16, gap: 4}}
+            >
+                <MainContent/>
+                <Latest/>
+            </Container>
+            <Footer/>
+        </ThemeProvider>
+    );
 }
 
 export default App;
