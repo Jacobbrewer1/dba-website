@@ -16,19 +16,17 @@ on:
         options:
           - 'dev-1'
           - 'prod-1'
-      app:
-        description: 'App to deploy'
+      chart-branch:
+        description: 'Branch to checkout the chart from'
         required: true
-        type: choice
-        options:
-          - 'data'
-          - 'importer'
+        type: string
+        default: 'main'
 
 jobs:
   build:
     name: Build All
     permissions: write-all
-    uses: ./.github/workflows/ci-docker.yml
+    uses: ./.github/workflows/docker.yml
     secrets: inherit
 
   deploy:
@@ -40,10 +38,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Get commit
-        id: get_commit
-        run: echo "sha_short_deploy=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
+      - name: Get hash
+        id: get-hash
+        run: echo "hash=$(git describe --tags)" >> $GITHUB_ENV
 
       - name: Import secrets
         id: import-secrets
@@ -60,7 +60,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ inputs.chart-branch }}
           repository: Jacobbrewer1/supporting-charts
           path: ./charts
           token: ${{ steps.import-secrets.outputs.GITHUB_TOKEN }}
@@ -68,17 +68,5 @@ jobs:
       - name: Deploy
         uses: WyriHaximus/github-action-helm3@v4
         with:
-          exec: helm upgrade --install f1-data-${{ inputs.app }} ./charts --values charts/valueFiles/${{ inputs.environment }}/f1-data-${{ inputs.app }}.yaml --set image.tag=${{ steps.get_commit.outputs.sha_short_deploy }}
+          exec: helm upgrade --install dba-website ./charts --values charts/valueFiles/${{ inputs.environment }}/dba-website.yaml --set image.tag=${{ env.hash }}
           kubeconfig: '${{ steps.import-secrets.outputs.KUBE_CONFIG }}'
-
-      - name: Docs
-        # Only run on the main branch
-        if: ${{ github.ref == 'refs/heads/main' && inputs.app == 'data' }}
-        shell: bash
-        run: |
-          curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ steps.import-secrets.outputs.GITHUB_TOKEN }}" \
-          https://api.github.com/repos/Jacobbrewer1/f1-data-docs/actions/workflows/ci-deploy-docs.yml/dispatches \
-          -d '{"ref":"main"}'

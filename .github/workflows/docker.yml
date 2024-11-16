@@ -38,11 +38,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          cache-dependency-path: "**/*.sum"
-
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
       - name: Log into registry
