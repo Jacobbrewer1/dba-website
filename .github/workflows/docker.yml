@@ -14,6 +14,9 @@ on:
     types:
       - completed
   workflow_call:
+    outputs:
+      hash:
+        value: ${{ github.docker-build.outputs.HASH }}
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -67,3 +70,6 @@ jobs:
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.LOWER_IMAGE_NAME }}:${{ env.HASH }}
           docker push ${{ env.REGISTRY }}/${{ env.LOWER_IMAGE_NAME }}:latest
+
+      - name: Output hash
+        run: echo "HASH=${{ env.HASH }}" >> $GITHUB_OUTPUT
