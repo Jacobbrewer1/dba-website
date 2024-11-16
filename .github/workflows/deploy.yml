@@ -71,5 +71,5 @@ jobs:
       - name: Deploy
         uses: WyriHaximus/github-action-helm3@v4
         with:
-          exec: helm upgrade --install dba-website ./charts --values charts/valueFiles/${{ inputs.environment }}/dba-website.yaml --set image.tag=${{ steps.shorten_hash.outputs.sha_short_deploy }}
+          exec: helm upgrade --install dba-website ./charts --values charts/valueFiles/${{ inputs.environment }}/dba-website.yaml --set image.tag=${{ env.HASH }}
           kubeconfig: '${{ steps.import-secrets.outputs.KUBE_CONFIG }}'
