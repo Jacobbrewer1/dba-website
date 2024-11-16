@@ -42,11 +42,7 @@ jobs:
       - name: Shorten hash
         id: shorten_hash
         run: |
-          if ${{ github.event_name == 'workflow_run' }} && ${{ github.event.workflow_run.conclusion == 'success' }}; then
-            echo "HASH=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
-          else
-            echo "HASH=$(git describe --tags)" >> $GITHUB_ENV
-          fi
+          echo "HASH=$(git describe --tags)" >> $GITHUB_ENV
 
       - name: Import secrets
         id: import-secrets
