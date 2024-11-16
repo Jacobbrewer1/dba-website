@@ -36,6 +36,13 @@ jobs:
     environment: ${{ inputs.environment }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get hash
+        id: get-hash
+        run: echo "hash=$(git describe --tags)" >> $GITHUB_ENV
+
       - name: Import secrets
         id: import-secrets
         uses: hashicorp/vault-action@v3
@@ -59,5 +66,5 @@ jobs:
       - name: Deploy
         uses: WyriHaximus/github-action-helm3@v4
         with:
-          exec: helm upgrade --install dba-website ./charts --values charts/valueFiles/${{ inputs.environment }}/dba-website.yaml --set image.tag=${{ needs.build.outputs.hash }}
+          exec: helm upgrade --install dba-website ./charts --values charts/valueFiles/${{ inputs.environment }}/dba-website.yaml --set image.tag=${{ env.hash }}
           kubeconfig: '${{ steps.import-secrets.outputs.KUBE_CONFIG }}'

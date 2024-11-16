@@ -13,10 +13,6 @@ on:
       - "Create Release"
     types:
       - completed
-  workflow_call:
-    outputs:
-      hash:
-        value: ${{ jobs.docker-build.outputs.HASH }}
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -34,8 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    outputs:
-      HASH: ${{ steps.shorten_hash.outputs.HASH }}
 
     steps:
       - name: Checkout repository
@@ -72,6 +66,3 @@ jobs:
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.LOWER_IMAGE_NAME }}:${{ env.HASH }}
           docker push ${{ env.REGISTRY }}/${{ env.LOWER_IMAGE_NAME }}:latest
-
-      - name: Output hash
-        run: echo "HASH=${{ env.HASH }}" >> $GITHUB_OUTPUT
