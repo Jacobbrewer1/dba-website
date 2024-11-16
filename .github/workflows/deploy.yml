@@ -16,13 +16,11 @@ on:
         options:
           - 'dev-1'
           - 'prod-1'
-      app:
-        description: 'App to deploy'
+      chart-branch:
+        description: 'Branch to checkout the chart from'
         required: true
-        type: choice
-        options:
-          - 'data'
-          - 'importer'
+        type: string
+        default: 'main'
 
 jobs:
   build:
@@ -60,7 +58,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ inputs.chart-branch }}
           repository: Jacobbrewer1/supporting-charts
           path: ./charts
           token: ${{ steps.import-secrets.outputs.GITHUB_TOKEN }}
