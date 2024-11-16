@@ -39,9 +39,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get commit
-        id: get_commit
-        run: echo "sha_short_deploy=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
+      - name: Shorten hash
+        id: shorten_hash
+        run: |
+          if ${{ github.event_name == 'workflow_run' }} && ${{ github.event.workflow_run.conclusion == 'success' }}; then
+            echo "HASH=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+          else
+            echo "HASH=$(git describe --tags)" >> $GITHUB_ENV
+          fi
 
       - name: Import secrets
         id: import-secrets
@@ -66,17 +71,5 @@ jobs:
       - name: Deploy
         uses: WyriHaximus/github-action-helm3@v4
         with:
-          exec: helm upgrade --install f1-data-${{ inputs.app }} ./charts --values charts/valueFiles/${{ inputs.environment }}/f1-data-${{ inputs.app }}.yaml --set image.tag=${{ steps.get_commit.outputs.sha_short_deploy }}
+          exec: helm upgrade --install dba-website ./charts --values charts/valueFiles/${{ inputs.environment }}/dba-website.yaml --set image.tag=${{ steps.shorten_hash.outputs.sha_short_deploy }}
           kubeconfig: '${{ steps.import-secrets.outputs.KUBE_CONFIG }}'
-
-      - name: Docs
-        # Only run on the main branch
-        if: ${{ github.ref == 'refs/heads/main' && inputs.app == 'data' }}
-        shell: bash
-        run: |
-          curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ steps.import-secrets.outputs.GITHUB_TOKEN }}" \
-          https://api.github.com/repos/Jacobbrewer1/f1-data-docs/actions/workflows/ci-deploy-docs.yml/dispatches \
-          -d '{"ref":"main"}'
