@@ -16,7 +16,7 @@ on:
   workflow_call:
     outputs:
       hash:
-        value: ${{ github.docker-build.outputs.HASH }}
+        value: ${{ jobs.docker-build.outputs.HASH }}
 
 env:
   # Use docker.io for Docker Hub if empty
